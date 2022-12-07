@@ -1,11 +1,14 @@
-from flask import Flask
+from flask import Flask, render_template
 
 app = Flask(__name__)
 
 @app.route("/")
-def hello():
-    return "eggw"
+def index():
+    return render_template("views/index.html")
+
+@app.route("/login")
+def login():
+    return render_template("views/login.html")
 
 if __name__ == "__main__":
-    print("feg")
-    app.run()
+    app.run(debug=True)
