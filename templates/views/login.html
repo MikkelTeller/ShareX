@@ -2,9 +2,8 @@
 
 {% block title %}Login{% endblock %}
 
-
 {% block main %}
-
+    <h1 class="pb-3">Login</h1>
     <form action="/login" method="post">
         <div class="mb-3">
             <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="username" name="username" placeholder="Username" type="text">
@@ -12,7 +11,8 @@
         <div class="mb-3">
             <input class="form-control mx-auto w-auto" id="password" name="password" placeholder="Password" type="password">
         </div>
-        <button class="btn btn-primary" type="submit">Log In</button>
+        <button class="btn btn-primary mb-3" type="submit">Log In</button>
+        <p>Don't have an account yet? <a href="/register">Sign Up!</a></p>
     </form>
 
 {% endblock %}
