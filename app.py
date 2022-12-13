@@ -5,12 +5,14 @@ from werkzeug.security import check_password_hash, generate_password_hash
 app = Flask(__name__)
 app.secret_key = "htg924gt479ghau9w4q7tght4a9uqgthf"
 
+# Homepage
 @app.route("/")
 def index():
     if session.get("user_id") == None:
         return redirect("/login")
     return render_template("views/index.html", session=session)
 
+# Login Page
 @app.route("/login", methods = ["GET", "POST"])
 def login():
     if request.method == "GET":
@@ -29,6 +31,7 @@ def login():
             error_message = validate_login(username, password)[1]
             return render_template("views/error.html", error_message=error_message), 400
 
+# Registration Page
 @app.route("/register", methods = ["GET", "POST"])
 def register():
     if request.method == "GET":
@@ -58,10 +61,20 @@ def register():
             print("sergo")
             return render_template("views/error.html", error_message=error_message), 400
 
+# Logout
 @app.route("/logout")
 def logout():
     session["user_id"] = None
     return redirect("/login")
+
+@app.route("/create_group")
+def create_group():
+    return redirect("/login")
+
+@app.route("/group")
+def group():
+    return redirect("/login")
+
 
 
 if __name__ == "__main__":
