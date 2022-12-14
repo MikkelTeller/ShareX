@@ -20,7 +20,7 @@ DROP TABLE IF EXISTS group_members;
 
 CREATE TABLE group_members (
     group_member_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    balance INTEGER NOT NULL,
+    balance INTEGER NOT NULL DEFAULT 0,
     user_id INTEGER NOT NULL,
     group_id INTEGER NOT NULL,
     FOREIGN KEY(user_id) REFERENCES users(user_id),

@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, session, request
-from helpers import get_db_connection, validate_login, validate_registration, add_user
+from helpers import get_db_connection, validate_login, validate_registration, add_user, find_groups, find_group
 from werkzeug.security import check_password_hash, generate_password_hash
 
 app = Flask(__name__)
@@ -10,7 +10,10 @@ app.secret_key = "htg924gt479ghau9w4q7tght4a9uqgthf"
 def index():
     if session.get("user_id") == None:
         return redirect("/login")
-    return render_template("views/index.html", session=session)
+    groups = find_groups(session["user_id"])
+    for group in groups:
+        print(group["group_name"])
+    return render_template("views/index.html", groups=groups)
 
 # Login Page
 @app.route("/login", methods = ["GET", "POST"])
@@ -71,10 +74,15 @@ def logout():
 def create_group():
     return redirect("/login")
 
-@app.route("/group")
-def group():
+@app.route("/invite")
+def invite():
     return redirect("/login")
 
+@app.route("/group")
+def group():
+    group_id = request.args.get("group_id")
+    group = find_group(group_id)[0]
+    return render_template("views/group.html", group=group)
 
 
 if __name__ == "__main__":

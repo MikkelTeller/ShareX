@@ -54,3 +54,20 @@ def add_user(username, password):
     conn.commit()
     conn.close()
 
+def find_groups(user_id):
+    conn = get_db_connection()
+
+    groups = conn.execute("SELECT * FROM groups JOIN group_members ON group_members.group_id = groups.group_id WHERE user_id = ?", [user_id]).fetchall()
+
+    conn.close()
+
+    return groups
+
+def find_group(group_id):
+    conn = get_db_connection()
+
+    group = conn.execute("SELECT * FROM groups WHERE group_id = ?", [group_id]).fetchall()
+
+    conn.close()
+
+    return group

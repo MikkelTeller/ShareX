@@ -10,7 +10,7 @@
 
 {% for group in groups %}
     <div class="container bg-light">
-        <h2><a href="#" class="text-decoration-none">{{ group["group_name"] }}</a></h2>
+        <h2><a href="/group?group_id={{ group['group_id'] }}" class="text-decoration-none">{{ group["group_name"] }}</a></h2>
         <p>Last updated: {{ group["last_updated"] }}</p>
     </div>
 {% endfor %}
