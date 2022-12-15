@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+
+{% block title %}Error{% endblock %}
+
+
+{% block main %}
+    <div class="container text-center">
+        <h1 class="pb-3">New Member in "{{ group["group_name"] }}"</h1>
+        <p>Who do you want to add?</p>
+        <form action="/add_member?group_id={{ group['group_id'] }}" method="post">
+            <div class="mb-3">
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="username" name="username" placeholder="Username" type="text">
+            </div>
+            <button class="btn btn-primary mb-3" type="submit">Add Member</button>
+        </form>
+    </div>
+{% endblock %}

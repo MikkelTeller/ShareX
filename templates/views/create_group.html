@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block title %}Error{% endblock %}
+
+
+{% block main %}
+    <div class="container text-center">
+        <h1 class="pb-3">New Group</h1>
+        <form action="/create_group" method="post">
+            <div class="mb-3">
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="group_name" name="group_name" placeholder="Group Name" type="text">
+            </div>
+            <button class="btn btn-primary mb-3" type="submit">Create Group</button>
+        </form>
+    </div>
+{% endblock %}

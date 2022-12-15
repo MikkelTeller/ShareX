@@ -3,7 +3,26 @@
 {% block title %}Login{% endblock %}
 
 {% block main %}
+    <!-- Delete- and invite button, if the current user is the creator of the group -->
+    {% if session["user_id"] == group["creator"] %}
+        <div class="container text-end">
+            <form action="/group?group_id={{ group['group_id'] }}" method="post">
+                <button class="btn btn-primary mb-3" type="submit" name="add_member">Add Member</button>
+                <button class="btn btn-danger mb-3" type="submit" name="delete">Delete Group</button>
+            </form>
+        </div>
+    {% endif %}
+
+    <!-- Group Name -->
     <div class="container text-center">
         <h1>{{ group["group_name"] }}</h1>
     </div>
+
+    <!-- User's balance -->
+    <div class="container text-center">
+        <p>My Balance: {{ group_member["balance"] }}</p>
+    </div>
+    <!-- Transactions (5 most recent) -->
+    
+    <!-- New expense,  -->
 {% endblock %}

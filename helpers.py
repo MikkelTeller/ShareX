@@ -57,7 +57,7 @@ def add_user(username, password):
 def find_groups(user_id):
     conn = get_db_connection()
 
-    groups = conn.execute("SELECT * FROM groups JOIN group_members ON group_members.group_id = groups.group_id WHERE user_id = ?", [user_id]).fetchall()
+    groups = conn.execute("SELECT * FROM groups JOIN group_members ON group_members.group_id = groups.group_id WHERE user_id = ? ORDER BY last_updated DESC", [user_id]).fetchall()
 
     conn.close()
 
@@ -71,3 +71,46 @@ def find_group(group_id):
     conn.close()
 
     return group
+
+def find_group_member(group_id, user_id):
+    conn = get_db_connection()
+
+    group = conn.execute("SELECT * FROM group_members WHERE group_id = ? AND user_id = ?", [group_id, user_id]).fetchall()
+
+    conn.close()
+
+    return group
+
+def delete_group(group_id):
+    conn = get_db_connection()
+
+    conn.execute("DELETE FROM groups WHERE group_id = ?", [group_id])
+
+    conn.commit()
+    conn.close()
+
+def add_group_member(username, group_id):
+
+    conn = get_db_connection()
+
+    # Check if username exists
+    user = conn.execute("SELECT * FROM users WHERE username = ?", [username]).fetchall()
+    if len(user) != 1:
+        error_message = f"User \"{username}\" doesn't exist"
+        return False, error_message
+    
+    # Check if user already is in the group
+    user_id = user[0]["user_id"]
+    group_member = conn.execute("SELECT * FROM group_members WHERE user_id = ? AND group_id = ?", [user_id, group_id]).fetchall()
+    if len(group_member) != 0:
+        error_message = f"User \"{username}\" is already in the group"
+        return False, error_message
+
+    # Add user to group
+    user_id = user[0]["user_id"]
+    conn.execute("INSERT INTO group_members(balance, user_id, group_id) VALUES (0, ?, ?)", [user_id, group_id])
+
+    conn.commit()
+    conn.close()
+
+    return True, None
