@@ -26,3 +26,16 @@ CREATE TABLE group_members (
     FOREIGN KEY(user_id) REFERENCES users(user_id),
     FOREIGN KEY(group_id) REFERENCES groups(group_id)
 );
+
+DROP TABLE IF EXISTS expenses;
+
+CREATE TABLE expenses (
+    expense_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    payer INTEGER NOT NULL,
+    amount REAL NOT NULL,
+    message TEXT NOT NULL,
+    time TEXT NOT NULL,
+    group_id INTEGER NOT NULL,
+    FOREIGN KEY(payer) REFERENCES group_members(group_member_id),
+    FOREIGN KEY(group_id) REFERENCES groups(group_id)
+);

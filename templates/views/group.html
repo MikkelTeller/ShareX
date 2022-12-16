@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}Login{% endblock %}
+{% block title %}{{ group["group_name"] }}{% endblock %}
 
 {% block main %}
     <!-- Delete- and invite button, if the current user is the creator of the group -->
@@ -20,9 +20,37 @@
 
     <!-- User's balance -->
     <div class="container text-center">
-        <p>My Balance: {{ group_member["balance"] }}</p>
+        <p>My Balance: <b>{{ current_group_member["balance"] | dkk }}</b></p>
     </div>
-    <!-- Transactions (5 most recent) -->
-    
-    <!-- New expense,  -->
+    <!-- Expenses (5 most recent) -->
+    <div>
+
+        {% for expense in expenses %}
+        <div class="container text-center bg-light">
+            <p><b>{{ expense["amount"] }} DKK</b>: {{ expense["message"] }}</p>
+            <p>Payed by: {{ expense["username"] }}</p>
+            <p>{{ expense["time"][8:10] }}/{{ expense["time"][5:7] }} - {{ expense["time"][:4] }}</p>
+        </div>
+        {% endfor %}
+
+    </div>
+    <!-- "Add Expense" and "Pay My Part" -->
+    <div class="container text-center">
+        <form action="/group?group_id={{ group['group_id'] }}" method="post">
+            <button class="btn btn-primary ms-3 me-3" type="submit" name="add_expense">Add Expense</button>
+            <button class="btn btn-primary ms-3 me-3" type="submit" name="pay_my_part">Pay My Part</button>
+        </form>
+    </div>
+
+    <!-- Group members -->
+    <div class="container text-center">
+        <h4>Group Members:</h4>
+        <div class="d-inline-flex text-start">
+            <ul>
+                {% for group_member in group_members %}
+                <li>{{group_member["username"]}}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
 {% endblock %}

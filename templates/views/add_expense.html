@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+
+{% block title %}New Expense{% endblock %}
+
+
+{% block main %}
+    <div class="container text-center">
+        <h1 class="pb-3">New Expense: <i>{{ group["group_name"] }}</i></h1>
+        <form action="/add_expense?group_id={{ group['group_id'] }}" method="post">
+            <div class="mb-3">
+                <select class="form-control mx-auto w-auto" name="payer" id="payer">
+                    <option selected>Who pays?</option>
+                    {% for group_member in group_members %}
+                    <option value="{{ group_member['user_id'] }}">{{ group_member['username'] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="amount" name="amount" placeholder="Amount (DKK)" type="text">
+            </div>
+            <div class="mb-3">
+                <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="message" name="message" placeholder="Message" type="text">
+            </div>
+            <button class="btn btn-primary mb-3" type="submit">Confirm</button>
+        </form>
+    </div>
+{% endblock %}

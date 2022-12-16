@@ -1,11 +1,11 @@
 {% extends "layout.html" %}
 
-{% block title %}Error{% endblock %}
+{% block title %}New Member{% endblock %}
 
 
 {% block main %}
     <div class="container text-center">
-        <h1 class="pb-3">New Member in "{{ group["group_name"] }}"</h1>
+        <h1 class="pb-3">New Member: <i>{{ group["group_name"] }}</i></h1>
         <p>Who do you want to add?</p>
         <form action="/add_member?group_id={{ group['group_id'] }}" method="post">
             <div class="mb-3">

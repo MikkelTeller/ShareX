@@ -24,7 +24,7 @@ def validate_login(username, password):
     if not check_password_hash(user[0]["hash"], password):
         return False, "Incorrect username or password"
 
-    return True, user[0]["user_id"]
+    return True, user[0]
 
 # This functions checks if the input is a valid new user.
     # If the input is valid: The function returns (True, None)
@@ -65,7 +65,6 @@ def find_groups(user_id):
 
 def find_group(group_id):
     conn = get_db_connection()
-
     group = conn.execute("SELECT * FROM groups WHERE group_id = ?", [group_id]).fetchall()
 
     conn.close()
@@ -114,3 +113,25 @@ def add_group_member(username, group_id):
     conn.close()
 
     return True, None
+
+def get_expenses(group_id):
+    conn = get_db_connection()
+
+    expenses = conn.execute("SELECT * FROM users LEFT JOIN expenses ON expenses.payer = users.user_id WHERE group_id = ? ORDER BY time DESC LIMIT 5", [group_id]).fetchall()
+
+    conn.close()
+
+    return expenses
+
+def get_group_members(group_id):
+    conn = get_db_connection()
+
+    group_members = conn.execute("SELECT * FROM group_members INNER JOIN users ON users.user_id = group_members.user_id WHERE group_members.group_id = ?", [group_id]).fetchall()
+
+    conn.close()
+
+    return group_members
+
+def dkk(number):
+    number = str(round(number,2))
+    return number + " DKK"
