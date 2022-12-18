@@ -12,13 +12,13 @@
 <body class="">
   
     <nav class="navbar navbar-expand-lg navbar-light bg-light ps-3 pe-3">
-      <a class="navbar-brand" href="/">App!</a>
+      <a class="navbar-brand" href="/">ShareX</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         {% if session.get("user_id") == None %}
-          <ul class="navbar-nav mr-auto">
+          <ul class="navbar-nav ms-auto">
             <li class="nav-item active">
               <a class="nav-link" href="/login">Login</a>
             </li>
