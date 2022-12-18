@@ -176,3 +176,30 @@ def user_is_creator(user_id, group_id):
         return False
     if len(creators) == 1:
         return True
+
+def delete_expense(expense_id):
+    conn = get_db_connection()
+
+    conn.execute("DELETE FROM expenses WHERE expense_id = ?", [expense_id])
+
+    conn.commit()
+    conn.close()
+
+def update_balances(group_id):
+    group_members = get_group_members(group_id)
+    count = len(group_members)
+    for group_member in group_members:
+        balance = 0
+        expenses = get_expenses(group_id)
+        for expense in expenses:
+            if expense["payer"] == group_member["group_member_id"]:
+                balance += float(expense["amount"]) * ((count-1)/count)
+            else:
+                balance -= float(expense["amount"]) / count
+                conn = get_db_connection()
+    
+        conn = get_db_connection()
+        conn.execute("UPDATE group_members SET balance = ? WHERE group_member_id = ?", [balance, group_member["group_member_id"]])
+
+        conn.commit()
+        conn.close()

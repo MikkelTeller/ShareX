@@ -7,7 +7,6 @@
     {% if session["user_id"] == group["creator"] %}
         <div class="container text-end">
             <form action="/group?group_id={{ group['group_id'] }}" method="post">
-
                 <button class="btn btn-danger mb-3" type="submit" name="settle_group">Settle Group</button>
             </form>
         </div>
@@ -25,10 +24,12 @@
 
     <!-- Expenses (5 most recent) -->
     {% for expense in expenses %}
-    <div class="container text-center bg-light">
-        <p><b>{{ expense["amount"] }} DKK</b>: {{ expense["message"] }}</p>
-        <p>Payed by: {{ expense["username"] }}</p>
-        <p>{{ expense["time"][8:10] }}/{{ expense["time"][5:7] }}-{{ expense["time"][:4] }}  {{ expense["time"][11:16] }}</p>
+    <div class="container text-center bg-light pt-2 mb-3">
+        <p class="mb-2 h4"><b>{{ expense["amount"] }} DKK</b>: {{ expense["message"] }}</p>
+        <p class="mb-2 mt-1">Payed by: {{ expense["username"] }} | Time: {{ expense["time"][8:10] }}/{{ expense["time"][5:7] }}-{{ expense["time"][:4] }}  {{ expense["time"][11:16] }}</p>
+        <form action="/group?group_id={{ group['group_id'] }}" method="post">
+            <button class="btn-sm btn-danger mb-3" type="submit" name="delete" value="{{ expense['expense_id'] }}">Delete</button>
+        </form>
     </div>
     {% endfor %}
     {% if expenses | length == 0 %}

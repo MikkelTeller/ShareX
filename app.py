@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, session, request
-from helpers import get_db_connection, validate_login, validate_registration, add_user, find_groups, find_group, delete_group, find_group_member, add_group_member, get_expenses, get_group_members, dkk, total_balance, user_in_group, user_is_creator
+from helpers import get_db_connection, validate_login, validate_registration, add_user, find_groups, find_group, delete_group, find_group_member, add_group_member, get_expenses, get_group_members, dkk, total_balance, user_in_group, user_is_creator, delete_expense, update_balances
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
 
@@ -176,6 +176,13 @@ def group():
         if request.form.get("expenses") == "":
             return redirect(f"/expenses?group_id={group_id}")
 
+        # Delete expense
+        if request.form.get("delete"):
+            expense_id = request.form.get("delete")
+            delete_expense(expense_id)
+            update_balances(group_id)
+            return redirect(f"/group?group_id={group_id}")
+
 # Add expense page
 @app.route("/add_expense", methods = ["POST", "GET"])
 def add_expense():
@@ -226,23 +233,7 @@ def add_expense():
         conn.close()
 
         # Update the users' balances
-        group_members = get_group_members(group_id)
-        count = len(group_members)
-        for group_member in group_members:
-            balance = 0
-            expenses = get_expenses(group_id)
-            for expense in expenses:
-                if expense["payer"] == group_member["group_member_id"]:
-                    balance += float(expense["amount"]) * ((count-1)/count)
-                else:
-                    balance -= float(expense["amount"]) / count
-                    conn = get_db_connection()
-        
-            conn = get_db_connection()
-            conn.execute("UPDATE group_members SET balance = ? WHERE group_member_id = ?", [balance, group_member["group_member_id"]])
-
-            conn.commit()
-            conn.close()
+        update_balances(group_id)
         return redirect(f"/group?group_id={group_id}")
 
 # Settle Group page
@@ -298,7 +289,7 @@ def settle_group():
             return redirect(f"/group?group_id={group_id}")
 
 # All expenses page
-@app.route("/expenses")
+@app.route("/expenses", methods = ["POST", "GET"])
 def expenses():
     # If user isn't logged in, the user will be redirected to the login page
     if session.get("user_id") == None:
@@ -310,10 +301,20 @@ def expenses():
     if not user_in_group(session["user_id"], group_id):
         return redirect("/")
 
-    group = find_group(group_id)
-    expenses = get_expenses(group_id)
+    if request.method == "GET":
+        group = find_group(group_id)
+        expenses = get_expenses(group_id)
 
-    return render_template("views/expenses.html", expenses=expenses, group=group)
+        return render_template("views/expenses.html", expenses=expenses, group=group)
+
+    if request.method == "POST":
+        # Delete expense
+        if request.form.get("delete"):
+            expense_id = request.form.get("delete")
+            delete_expense(expense_id)
+            update_balances(group_id)
+            print("HFHFH")
+            return redirect(f"/expenses?group_id={group_id}")
 
 if __name__ == "__main__":
     app.run(debug=True)
