@@ -11,7 +11,7 @@
                 <select class="form-control mx-auto w-auto" name="payer" id="payer">
                     <option selected>Who pays?</option>
                     {% for group_member in group_members %}
-                    <option value="{{ group_member['user_id'] }}">{{ group_member['username'] }}</option>
+                    <option value="{{ group_member['group_member_id'] }}">{{ group_member['username'] }}</option>
                     {% endfor %}
                 </select>
             </div>

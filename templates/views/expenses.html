@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block title %}New Expense{% endblock %}
+
+
+{% block main %}
+    <h1 class="text-center mb-4">All expenses in <i>{{ group['group_name'] }}</i></h1>
+    {% for expense in expenses %}
+    <div class="container text-center bg-light">
+        <p><b>{{ expense["amount"] }} DKK</b>: {{ expense["message"] }}</p>
+        <p>Payed by: {{ expense["username"] }}</p>
+        <p>{{ expense["time"][8:10] }}/{{ expense["time"][5:7] }}-{{ expense["time"][:4] }}  {{ expense["time"][11:16] }}</p>
+    </div>
+    {% endfor %}
+{% endblock %}

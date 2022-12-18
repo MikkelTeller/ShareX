@@ -1,17 +1,32 @@
 {% extends "layout.html" %}
 
-{% block title %}New Member{% endblock %}
+{% block title %}Add Member{% endblock %}
 
 
 {% block main %}
     <div class="container text-center">
-        <h1 class="pb-3">New Member: <i>{{ group["group_name"] }}</i></h1>
+        <h1 class="pb-3">Add Member to <i>{{ group["group_name"] }}</i></h1>
         <p>Who do you want to add?</p>
         <form action="/add_member?group_id={{ group['group_id'] }}" method="post">
             <div class="mb-3">
                 <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="username" name="username" placeholder="Username" type="text">
             </div>
-            <button class="btn btn-primary mb-3" type="submit">Add Member</button>
+            <div class="">
+                <button class="btn btn-primary mb-3" type="submit" name="add_member">Add Member</button>
+            </div>
+            <div class="container text-center">
+                <h4>Group Members:</h4>
+                <div class="d-inline-flex text-start">
+                    <ul>
+                        {% for group_member in group_members %}
+                        <li>{{group_member["username"]}}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            <div class="">
+                <button class="btn btn-success mb-3" type="submit" name="done">Done</button>
+            </div>
         </form>
     </div>
 {% endblock %}

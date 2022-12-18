@@ -65,7 +65,7 @@ def find_groups(user_id):
 
 def find_group(group_id):
     conn = get_db_connection()
-    group = conn.execute("SELECT * FROM groups WHERE group_id = ?", [group_id]).fetchall()
+    group = conn.execute("SELECT * FROM groups WHERE group_id = ?", [group_id]).fetchall()[0]
 
     conn.close()
 
@@ -84,6 +84,7 @@ def delete_group(group_id):
     conn = get_db_connection()
 
     conn.execute("DELETE FROM groups WHERE group_id = ?", [group_id])
+    conn.execute("DELETE FROM group_members WHERE group_id = ?", [group_id])
 
     conn.commit()
     conn.close()
@@ -114,13 +115,15 @@ def add_group_member(username, group_id):
 
     return True, None
 
-def get_expenses(group_id):
+def get_expenses(group_id, count = False):
     conn = get_db_connection()
-
-    expenses = conn.execute("SELECT * FROM users LEFT JOIN expenses ON expenses.payer = users.user_id WHERE group_id = ? ORDER BY time DESC LIMIT 5", [group_id]).fetchall()
-
+    if count:
+        expenses = conn.execute("SELECT * FROM group_members LEFT JOIN expenses ON expenses.payer = group_members.group_member_id LEFT JOIN users ON users.user_id = group_members.user_id WHERE expenses.group_id = ? ORDER BY time DESC LIMIT ?", [group_id, count]).fetchall()
+    else:
+        expenses = conn.execute("SELECT * FROM group_members LEFT JOIN expenses ON expenses.payer = group_members.group_member_id LEFT JOIN users ON users.user_id = group_members.user_id WHERE expenses.group_id = ? ORDER BY time DESC", [group_id]).fetchall()
     conn.close()
 
+    expenses.reverse()
     return expenses
 
 def get_group_members(group_id):
@@ -135,3 +138,41 @@ def get_group_members(group_id):
 def dkk(number):
     number = str(round(number,2))
     return number + " DKK"
+
+def total_balance(user_id):
+    conn = get_db_connection()
+
+    balances = conn.execute("SELECT balance FROM group_members INNER JOIN users ON users.user_id = group_members.user_id WHERE users.user_id = ?", [user_id]).fetchall()
+
+    total_balance = 0
+
+    for balance in balances:
+        total_balance += balance["balance"]
+
+    conn.close()
+
+    return total_balance
+
+def user_in_group(user_id, group_id):
+    conn = get_db_connection()
+
+    group_members = conn.execute("SELECT * FROM group_members WHERE group_id = ? AND user_id = ?", [group_id, user_id]).fetchall()
+
+    conn.close()
+
+    if len(group_members) == 0:
+        return False
+    if len(group_members) == 1:
+        return True
+
+def user_is_creator(user_id, group_id):
+    conn = get_db_connection()
+
+    creators = conn.execute("SELECT * FROM group_members LEFT JOIN groups ON group_members.group_id = groups.group_id WHERE group_members.group_id = ? AND groups.creator = ? AND group_members.group_member_id = ?", [group_id, user_id, user_id]).fetchall()
+
+    conn.close()
+
+    if len(creators) == 0:
+        return False
+    if len(creators) == 1:
+        return True

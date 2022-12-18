@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+
+{% block title %}Settle Group{% endblock %}
+
+
+{% block main %}
+    <div class="container text-center">
+        <h1 class="pb-3">Settle <i>{{ group["group_name"] }}</i></h1>
+        {% for transfer in transfers %}
+        <div class="d-inline-flex text-start">
+            <ul>
+                <li>{{ transfer["from"] }} transfers <b>{{ transfer["amount"] | dkk }}</b> to {{ transfer["to"] }}</li>
+            </ul>
+        </div>
+        {% endfor %}
+        <p>Once you have payed each other, you can delete the group.</p>
+        <form action="/settle_group?group_id={{ group['group_id'] }}" method="post">
+            <button class="btn btn-danger mb-3" type="submit" name="delete_group">Delete Group</button>
+            <button class="btn btn-primary mb-3" type="submit" name="cancel">Cancel</button>
+        </form>
+    </div>
+{% endblock %}

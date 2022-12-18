@@ -7,8 +7,8 @@
     {% if session["user_id"] == group["creator"] %}
         <div class="container text-end">
             <form action="/group?group_id={{ group['group_id'] }}" method="post">
-                <button class="btn btn-primary mb-3" type="submit" name="add_member">Add Member</button>
-                <button class="btn btn-danger mb-3" type="submit" name="delete">Delete Group</button>
+
+                <button class="btn btn-danger mb-3" type="submit" name="settle_group">Settle Group</button>
             </form>
         </div>
     {% endif %}
@@ -22,28 +22,34 @@
     <div class="container text-center">
         <p>My Balance: <b>{{ current_group_member["balance"] | dkk }}</b></p>
     </div>
-    <!-- Expenses (5 most recent) -->
-    <div>
 
-        {% for expense in expenses %}
-        <div class="container text-center bg-light">
-            <p><b>{{ expense["amount"] }} DKK</b>: {{ expense["message"] }}</p>
-            <p>Payed by: {{ expense["username"] }}</p>
-            <p>{{ expense["time"][8:10] }}/{{ expense["time"][5:7] }} - {{ expense["time"][:4] }}</p>
-        </div>
-        {% endfor %}
+    <!-- Expenses (5 most recent) -->
+    {% for expense in expenses %}
+    <div class="container text-center bg-light">
+        <p><b>{{ expense["amount"] }} DKK</b>: {{ expense["message"] }}</p>
+        <p>Payed by: {{ expense["username"] }}</p>
+        <p>{{ expense["time"][8:10] }}/{{ expense["time"][5:7] }}-{{ expense["time"][:4] }}  {{ expense["time"][11:16] }}</p>
+    </div>
+    {% endfor %}
+    {% if expenses | length == 0 %}
+    <div class="container text-center bg-light">
+        <p><b>No expenses yet</b></p>
+        <p></p>
+        <p>Press the "Add Expense"-button to add an expense</p>
+    </div>
+    {% endif %}
 
     </div>
-    <!-- "Add Expense" and "Pay My Part" -->
+    <!-- "Add Expense" and "See All Expenses" -->
     <div class="container text-center">
         <form action="/group?group_id={{ group['group_id'] }}" method="post">
             <button class="btn btn-primary ms-3 me-3" type="submit" name="add_expense">Add Expense</button>
-            <button class="btn btn-primary ms-3 me-3" type="submit" name="pay_my_part">Pay My Part</button>
+            <button class="btn btn-primary ms-3 me-3" type="submit" name="expenses">See All Expenses</button>
         </form>
     </div>
 
     <!-- Group members -->
-    <div class="container text-center">
+    <div class="container text-center bg-light mt-3">
         <h4>Group Members:</h4>
         <div class="d-inline-flex text-start">
             <ul>

@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, session, request
-from helpers import get_db_connection, validate_login, validate_registration, add_user, find_groups, find_group, delete_group, find_group_member, add_group_member, get_expenses, get_group_members, dkk
+from helpers import get_db_connection, validate_login, validate_registration, add_user, find_groups, find_group, delete_group, find_group_member, add_group_member, get_expenses, get_group_members, dkk, total_balance, user_in_group, user_is_creator
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
 
@@ -17,7 +17,8 @@ def index():
         return redirect("/login")
 
     groups = find_groups(session["user_id"])
-    return render_template("views/index.html", groups=groups)
+    balance = total_balance(session["user_id"]) 
+    return render_template("views/index.html", groups=groups, balance=balance)
 
 # Login Page
 @app.route("/login", methods = ["GET", "POST"])
@@ -94,7 +95,6 @@ def create_group():
     if request.method == "POST":
         group_name = request.form.get("group_name")
         time = str(datetime.now())
-        print(time)
 
         # Insert the group in the groups table
         conn = get_db_connection()
@@ -111,7 +111,7 @@ def create_group():
 
         conn.commit()
         conn.close()
-        return redirect("/")
+        return redirect(f"/add_member?group_id={group_id}")
 
 # Add member page
 @app.route("/add_member", methods=["GET", "POST"])
@@ -120,19 +120,25 @@ def add_member():
     if session.get("user_id") == None:
         return redirect("/login")
 
-    group_id = request.args.get("group_id")
+    group_id = request.args.get("group_id") 
 
     if request.method == "GET":
-        group = find_group(group_id)[0]
-        return render_template("views/add_member.html", group=group)
+        group = find_group(group_id)
+        group_members = get_group_members(group_id)
+        return render_template("views/add_member.html", group=group, group_members=group_members)
 
     if request.method == "POST":
-        username = request.form.get("username")
-        if add_group_member(username, group_id)[0]:
+        if request.form.get("add_member") == "":
+            username = request.form.get("username")
+            if add_group_member(username, group_id)[0]:
+                group_members = get_group_members(group_id)
+                return redirect(f"/add_member?group_id={group_id}")
+            else:
+                error_message = add_group_member(username, group_id)[1]
+                return render_template("views/error.html", error_message=error_message), 400
+        
+        if request.form.get("done") == "":
             return redirect(f"/group?group_id={group_id}")
-        else:
-            error_message = add_group_member(username, group_id)[1]
-            return render_template("views/error.html", error_message=error_message), 400
 
     
 
@@ -143,32 +149,32 @@ def group():
     if session.get("user_id") == None:
         return redirect("/login")
 
-    # If user isn't a part of the group, the user will be redirected to the home page
-    # TODO
     group_id = request.args.get("group_id")
+    # If user isn't a part of the group, the user will be redirected to the home page
+    if not user_in_group(session["user_id"], group_id):
+        return redirect("/")
 
     if request.method == "GET":
         # Get necessary information from database
-        group = find_group(group_id)[0]
+        group = find_group(group_id)
         current_group_member = find_group_member(group_id, session["user_id"])[0]
         group_members = get_group_members(group_id)
-        expenses = get_expenses(group_id)
+        expenses = get_expenses(group_id, 5)
         return render_template("views/group.html", group=group, current_group_member=current_group_member, expenses=expenses, group_members=group_members)
 
     
     if request.method == "POST":
         # Deleting group
-        if request.form.get("delete") == "":
-            delete_group(group_id)
-            return redirect("/")
+        if request.form.get("settle_group") == "":
+            return redirect(f"/settle_group?group_id={group_id}")
     
-       # Add expense
+        # Add expense
         if request.form.get("add_expense") == "":
             return redirect(f"/add_expense?group_id={group_id}")
-
-       # Add member
-        if request.form.get("add_member") == "":
-            return redirect(f"/add_member?group_id={group_id}")
+        
+        # See all expenses
+        if request.form.get("expenses") == "":
+            return redirect(f"/expenses?group_id={group_id}")
 
 # Add expense page
 @app.route("/add_expense", methods = ["POST", "GET"])
@@ -177,13 +183,14 @@ def add_expense():
     if session.get("user_id") == None:
         return redirect("/login")
 
-    # If user isn't a part of the group, the user will be redirected to the home page
-    # TODO
-
     group_id = request.args.get("group_id")
+    
+    # If user isn't a part of the group, the user will be redirected to the home page
+    if not user_in_group(session["user_id"], group_id):
+        return redirect("/")
 
     if request.method == "GET":
-        group = find_group(group_id)[0]
+        group = find_group(group_id)
         group_members = get_group_members(group_id)
         return render_template("views/add_expense.html", group_members=group_members, group=group)
     
@@ -218,19 +225,101 @@ def add_expense():
         conn.commit()
         conn.close()
 
-        # Update the users' balances 
+        # Update the users' balances
+        group_members = get_group_members(group_id)
+        count = len(group_members)
+        for group_member in group_members:
+            balance = 0
+            expenses = get_expenses(group_id)
+            for expense in expenses:
+                if expense["payer"] == group_member["group_member_id"]:
+                    balance += float(expense["amount"]) * ((count-1)/count)
+                else:
+                    balance -= float(expense["amount"]) / count
+                    conn = get_db_connection()
+        
+            conn = get_db_connection()
+            conn.execute("UPDATE group_members SET balance = ? WHERE group_member_id = ?", [balance, group_member["group_member_id"]])
 
+            conn.commit()
+            conn.close()
         return redirect(f"/group?group_id={group_id}")
 
+# Settle Group page
+@app.route("/settle_group", methods = ["POST", "GET"])
+def settle_group():
+    # If user isn't logged in, the user will be redirected to the login page
+    if session.get("user_id") == None:
+        return redirect("/login")
+
+    group_id = request.args.get("group_id")
+
+    # If user isn't the creator of the group, the user will be redirected to the home page
+    if not user_is_creator(session["user_id"], group_id):
+        return redirect("/")
+
+    if request.method == "GET":
+        group = find_group(group_id)
+        group_members_db = get_group_members(group_id)
+        group_members = []
+
+        for group_member in group_members_db:
+            username = group_member["username"]
+            balance = group_member["balance"]
+            group_members.append({"username": username, "balance": balance})
+        group_members = sorted(group_members, key=lambda group_member: group_member["balance"], reverse=True)
+
+        positive_group_members = []
+        negative_group_members = []
+
+        for group_member in group_members:
+            if group_member["balance"] > 0:
+                positive_group_members.append(group_member)
+            elif group_member["balance"] < 0:
+                negative_group_members.append(group_member)
+
+        transfers = []
+
+        for positive_group_member in positive_group_members:
+            while positive_group_member["balance"] > 0:
+                for negative_group_member in negative_group_members:
+                    transfer_amount = min(abs(negative_group_member["balance"]), positive_group_member["balance"])
+                    negative_group_member["balance"] += transfer_amount
+                    positive_group_member["balance"] -= transfer_amount
+                    transfers.append({"from": negative_group_member["username"], "to": positive_group_member["username"], "amount": transfer_amount})
+        
+        return render_template("views/settle_group.html", group=group, transfers=transfers)
+    
+    if request.method == "POST":
+        if request.form.get("delete_group") == "":
+            delete_group(group_id)
+            return redirect("/")
+        if request.form.get("cancel") == "":
+            return redirect(f"/group?group_id={group_id}")
+
+# All expenses page
+@app.route("/expenses")
+def expenses():
+    # If user isn't logged in, the user will be redirected to the login page
+    if session.get("user_id") == None:
+        return redirect("/login")
+
+    group_id = request.args.get("group_id")
+    
+    # If user isn't a part of the group, the user will be redirected to the home page
+    if not user_in_group(session["user_id"], group_id):
+        return redirect("/")
+
+    group = find_group(group_id)
+    expenses = get_expenses(group_id)
+
+    return render_template("views/expenses.html", expenses=expenses, group=group)
 
 if __name__ == "__main__":
     app.run(debug=True)
 
-# TODO:)
 
-# Update users' balances when an expense is added (Calculate from list of expenses)
-# Implement "pay my part"
-# Show users total balance in home page
+
+# TODO:)
 # Edit design colors and fonts
 # Edit the design of "group members" in the group page
-# Add "See all expenses"

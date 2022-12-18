@@ -6,14 +6,13 @@
 
 <div class="container text-left bg-1">
 <h1 class="pb-3">My Groups</h1>
-
-{% for group in groups %}
+<p>Total Balance: <b>{{ balance | dkk }}</b></p>
+{% for group in groups %}   
     <div class="container bg-light">
         <h2><a href="/group?group_id={{ group['group_id'] }}" class="text-decoration-none">{{ group["group_name"] }}</a></h2>
-        <p>Last updated: {{ group["last_updated"][8:10] }}/{{ group["last_updated"][5:7] }} - {{ group["last_updated"][:4] }}</p>
+        <p>Last updated: {{ group["last_updated"][8:10] }}/{{ group["last_updated"][5:7] }}-{{ group["last_updated"][:4] }} {{ group["last_updated"][11:16] }}</p>
     </div>
 {% endfor %}
-
 </div>
 
 {% endblock %}
