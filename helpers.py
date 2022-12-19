@@ -54,6 +54,7 @@ def add_user(username, password):
     conn.commit()
     conn.close()
 
+# This function returns all the groups a user is a part of
 def find_groups(user_id):
     conn = get_db_connection()
 
@@ -63,6 +64,7 @@ def find_groups(user_id):
 
     return groups
 
+# Returns group object found with group_id
 def find_group(group_id):
     conn = get_db_connection()
     group = conn.execute("SELECT * FROM groups WHERE group_id = ?", [group_id]).fetchall()[0]
@@ -71,6 +73,7 @@ def find_group(group_id):
 
     return group
 
+# Returns group_member object found with group_id and user_id
 def find_group_member(group_id, user_id):
     conn = get_db_connection()
 
@@ -80,15 +83,20 @@ def find_group_member(group_id, user_id):
 
     return group
 
+# Deletes a group and all the connected group members and expenses
 def delete_group(group_id):
     conn = get_db_connection()
 
     conn.execute("DELETE FROM groups WHERE group_id = ?", [group_id])
     conn.execute("DELETE FROM group_members WHERE group_id = ?", [group_id])
+    conn.execute("DELETE FROM expenses WHERE group_id = ?", [group_id])
 
     conn.commit()
     conn.close()
 
+# This function checks if the user can be added to the group
+    # If the username is valid: The function returns (True, None) and the user is added to the group
+    # If the username is invalid: The function returns (False, error_message) and the user is NOT added to the group
 def add_group_member(username, group_id):
 
     conn = get_db_connection()
@@ -115,6 +123,7 @@ def add_group_member(username, group_id):
 
     return True, None
 
+# This function returns an ordered list of a given number of expenses in a group. If count isn't specified it returns all the expenses in the group
 def get_expenses(group_id, count = False):
     conn = get_db_connection()
     if count:
@@ -126,6 +135,7 @@ def get_expenses(group_id, count = False):
     expenses.reverse()
     return expenses
 
+# Returns all group members of the group with the specified group_id
 def get_group_members(group_id):
     conn = get_db_connection()
 
@@ -135,10 +145,12 @@ def get_group_members(group_id):
 
     return group_members
 
+# Returns formatted amount in DKK
 def dkk(number):
     number = str(round(number,2))
     return number + " DKK"
 
+# Returns a user's total balance across all groups. This number is shown in the homepage
 def total_balance(user_id):
     conn = get_db_connection()
 
@@ -153,6 +165,7 @@ def total_balance(user_id):
 
     return total_balance
 
+# This function returns True if the user with the specified user_id is in the group with the specified group_id. If not it returns False
 def user_in_group(user_id, group_id):
     conn = get_db_connection()
 
@@ -165,10 +178,11 @@ def user_in_group(user_id, group_id):
     if len(group_members) == 1:
         return True
 
+# This function returns True if the user with the specified user_id is the creator of the group with the specified group_id. If not it returns False
 def user_is_creator(user_id, group_id):
     conn = get_db_connection()
 
-    creators = conn.execute("SELECT * FROM group_members LEFT JOIN groups ON group_members.group_id = groups.group_id WHERE group_members.group_id = ? AND groups.creator = ? AND group_members.group_member_id = ?", [group_id, user_id, user_id]).fetchall()
+    creators = conn.execute("SELECT * FROM group_members LEFT JOIN groups ON group_members.group_id = groups.group_id WHERE group_members.group_id = ? AND groups.creator = ? AND group_members.user_id = ?", [group_id, user_id, user_id]).fetchall()
 
     conn.close()
 
@@ -177,6 +191,7 @@ def user_is_creator(user_id, group_id):
     if len(creators) == 1:
         return True
 
+# Deletes an expense
 def delete_expense(expense_id):
     conn = get_db_connection()
 
@@ -185,6 +200,7 @@ def delete_expense(expense_id):
     conn.commit()
     conn.close()
 
+# This function updates all the group members' balances.
 def update_balances(group_id):
     group_members = get_group_members(group_id)
     count = len(group_members)
